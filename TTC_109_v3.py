@@ -15,17 +15,13 @@ from PIL import Image  # pip install pillow
 import random
 
 # 🎯 توكن البوت
-import os
-from dotenv import load_dotenv
+TOKEN = '8448653017:AAHmj3XpVrBNdRq1NyUhvLe235Vd47rkXWc'
 
-load_dotenv()
-
-BOT_TOKEN = os.environ["BOT_TOKEN"]
-OWNER_ID = int(os.environ["OWNER_ID"])
-
-# ملف المستخدمين
+# 👑 معرف مالك البوت (عدّله إلى رقم الـ user_id الخاص بك)
+OWNER_ID = 17967964
 USERS_FILE = "users.json"
 users = set()
+
 # =========================
 # تحميل / حفظ المستخدمين
 # =========================
@@ -538,7 +534,7 @@ AI_BUTTON = "استعلامات عامة"
 AI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
 FAQ_EXCEL_PATH = EXCEL_PATH
 # أضف هنا أسماء أوراق الاستعلامات فقط؛ لا تضف أوراق بيانات الموظفين أو المرشدين.
-FAQ_SHEET_NAMES = ["القبول والتسجيل", "التدريب التعاوني","إضافة الآيبان و طلب تعريف","الأنشطة"]
+FAQ_SHEET_NAMES = ["التنسيق الوظيفي", "التدريب التعاوني","إضافة الآيبان و طلب تعريف","الأنشطة"]
 FAQ_PAGE_SIZE = 8
 FAQ_BACK = "↩️ الأقسام"
 FAQ_HOME = "🏠 الرئيسية"
@@ -1387,7 +1383,7 @@ async def handle_choice(update, context):
 if __name__ == '__main__':
     load_users()
 
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler('myid', myid))
     app.add_handler(CommandHandler('stats', stats))
@@ -1405,3 +1401,4 @@ if __name__ == '__main__':
     app.add_handler(MessageHandler(filters.ALL, save_user))
 
     app.run_polling()
+
