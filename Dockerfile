@@ -13,4 +13,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Run your Python bot script (replace main.py with your entry file)
-CMD ["python", "main.py"]
+CMD ["python", "TTC_109_v3.py"]
