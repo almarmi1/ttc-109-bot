@@ -4,6 +4,14 @@ import pandas as pd
 import json
 import os
 import asyncio
+from pathlib import Path
+from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env")
+
+def asset_path(relative_path):
+    return str(BASE_DIR / relative_path)
 
 # ✅ تحويلات
 import pdfplumber
@@ -15,11 +23,11 @@ from PIL import Image  # pip install pillow
 import random
 
 # 🎯 توكن البوت
-TOKEN = '8448653017:AAHmj3XpVrBNdRq1NyUhvLe235Vd47rkXWc'
+TOKEN = os.getenv("BOT_TOKEN", "").strip()
 
 # 👑 معرف مالك البوت (عدّله إلى رقم الـ user_id الخاص بك)
-OWNER_ID = 17967964
-USERS_FILE = "users.json"
+OWNER_ID = int(os.getenv("OWNER_ID", "17967964"))
+USERS_FILE = Path(os.getenv("USERS_FILE", str(BASE_DIR / "users.json")))
 users = set()
 
 # =========================
@@ -41,6 +49,7 @@ def load_users():
 
 def save_users():
     try:
+        USERS_FILE.parent.mkdir(parents=True, exist_ok=True)
         with open(USERS_FILE, "w", encoding="utf-8") as f:
             json.dump(list(users), f, ensure_ascii=False, indent=2)
         print(f"Saved {len(users)} users to file.")
@@ -155,12 +164,12 @@ async def sendall(update, context):
 # =========================
 # المسارات المحلية
 # =========================
-EXCEL_PATH = '/Users/lozi/Desktop/TTC_109_bot/منسوبي الكلية.xlsx'
-image_example_path = '/Users/lozi/Desktop/TTC_109_bot/الخط الزمني.png'
-another_image_path = '/Users/lozi/Desktop/TTC_109_bot/التقويم.jpeg'
+EXCEL_PATH = asset_path('منسوبي الكلية.xlsx')
+image_example_path = asset_path('الخط الزمني.png')
+another_image_path = asset_path('التقويم.jpeg')
 
 # ✅ مسار بنك الأسئلة (عدّله لمكان ملف الإكسل)
-QUIZ_EXCEL_PATH = '/Users/lozi/Desktop/TTC_109_bot/بنك_اسئلة_اختبر_قدراتك.xlsx'
+QUIZ_EXCEL_PATH = asset_path('بنك_اسئلة_اختبر_قدراتك.xlsx')
 QUIZ_SHEET_NAME = 'QuestionBank'
 
 # ✅ إعدادات الاختبار
@@ -172,81 +181,81 @@ QUIZ_POINT_PER_CORRECT = 1
 # =========================
 department_training_plans = {
     "الحاسب وتقنية المعلومات": {
-        "الشبكات": "/Users/lozi/Desktop/TTC_109_bot/شبكات.pdf",
-        "البرمجيات": "/Users/lozi/Desktop/TTC_109_bot/برمجيات.pdf",
-        "الوسائط": "/Users/lozi/Desktop/TTC_109_bot/وسائط.pdf"
+        "الشبكات": asset_path('شبكات.pdf'),
+        "البرمجيات": asset_path('برمجيات.pdf'),
+        "الوسائط": asset_path('وسائط.pdf')
     },
     "التقنية الميكانيكية": {
-        "محركات ومركبات": "/Users/lozi/Desktop/TTC_109_bot/المحركات والمركبات.pdf"
+        "محركات ومركبات": asset_path('المحركات والمركبات.pdf')
     },
     "التقنية الالكترونية": {
-        "الإلكترونيات وأنظمة التحكم": "/Users/lozi/Desktop/TTC_109_bot/ الإلكترونيات وأنظمة التحكم.pdf"
+        "الإلكترونيات وأنظمة التحكم": asset_path(' الإلكترونيات وأنظمة التحكم.pdf')
     },
     "التقنية الكهربائية": {
-        "قوى كهربائية": "/Users/lozi/Desktop/TTC_109_bot/ القوى الكهربائية.pdf",
-        "طاقة متجددة": "/Users/lozi/Desktop/TTC_109_bot/ الطاقة المتجددة.pdf"
+        "قوى كهربائية": asset_path(' القوى الكهربائية.pdf'),
+        "طاقة متجددة": asset_path(' الطاقة المتجددة.pdf')
     },
     "التقنية المدنية والمعمارية": {
-        "مدني": "/Users/lozi/Desktop/TTC_109_bot/الإنشاءات المدنية.pdf",
-        "الإنشاءات المعمارية": "/Users/lozi/Desktop/TTC_109_bot/الإنشاءات المعمارية.pdf",
-        "مساحة": "/Users/lozi/Desktop/TTC_109_bot/المساحة.pdf"
+        "مدني": asset_path('الإنشاءات المدنية.pdf'),
+        "الإنشاءات المعمارية": asset_path('الإنشاءات المعمارية.pdf'),
+        "مساحة": asset_path('المساحة.pdf')
     },
     "التقنية الإدارية والمالية": {
-        "تقنية الاعمال": "/Users/lozi/Desktop/TTC_109_bot/ الأعمال المكتبية.pdf",
-        "محاسبة": "/Users/lozi/Desktop/TTC_109_bot/محاسبية.pdf"
+        "تقنية الاعمال": asset_path(' الأعمال المكتبية.pdf'),
+        "محاسبة": asset_path('محاسبية.pdf')
     },
     "الدراسات العامة": {
-        "مقدمة في الاحصاء": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/مقدمة في الاحصاء.pdf",
-        "الدراسات الاسلامية": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/ الدراسات الإسلامية.pdf",
-        "مقدمة تطبيقات الحاسب": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/مقدمة تطبيقات الحاسب.pdf",
-        "تطبيقات الحاسب المتقدمة": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/تطبيقات الحاسب المتقدمة.pdf",
-        "الرياضيات 101": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/الرياضيات 101.pdf",
-        "الرياضيات 121": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/الرياضيات 121.pdf",
-        "الفيزياء": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/الفيزياء.pdf",
-        "السلوك الوظيفي والمستقبل المهني": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/السلوك الوظيفي والمستقبل المهني.pdf",
-        "ENGL101": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/ENGL101 - English Language 1.pdf",
-        "ENGL102": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/ENGL102 - English Language 2.pdf",
-        "ENGL103": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/ENGL103 - English Language 3.pdf",
-        "ENGL111": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/ENGL111 - English Language 1.pdf",
-        "ENGL113": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/ENGL113 - English Language 3.pdf",
-        "ENGL204": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/ENGL204 - English Language 4.pdf",
-        "MATH101": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/MATH101 - Mathematics.pdf",
-        "MATH121": "/Users/lozi/Desktop/TTC_109_bot/قسم الدراسات العامة/MATH121 - Mathematics.pdf"
+        "مقدمة في الاحصاء": asset_path('قسم الدراسات العامة/مقدمة في الاحصاء.pdf'),
+        "الدراسات الاسلامية": asset_path('قسم الدراسات العامة/ الدراسات الإسلامية.pdf'),
+        "مقدمة تطبيقات الحاسب": asset_path('قسم الدراسات العامة/مقدمة تطبيقات الحاسب.pdf'),
+        "تطبيقات الحاسب المتقدمة": asset_path('قسم الدراسات العامة/تطبيقات الحاسب المتقدمة.pdf'),
+        "الرياضيات 101": asset_path('قسم الدراسات العامة/الرياضيات 101.pdf'),
+        "الرياضيات 121": asset_path('قسم الدراسات العامة/الرياضيات 121.pdf'),
+        "الفيزياء": asset_path('قسم الدراسات العامة/الفيزياء.pdf'),
+        "السلوك الوظيفي والمستقبل المهني": asset_path('قسم الدراسات العامة/السلوك الوظيفي والمستقبل المهني.pdf'),
+        "ENGL101": asset_path('قسم الدراسات العامة/ENGL101 - English Language 1.pdf'),
+        "ENGL102": asset_path('قسم الدراسات العامة/ENGL102 - English Language 2.pdf'),
+        "ENGL103": asset_path('قسم الدراسات العامة/ENGL103 - English Language 3.pdf'),
+        "ENGL111": asset_path('قسم الدراسات العامة/ENGL111 - English Language 1.pdf'),
+        "ENGL113": asset_path('قسم الدراسات العامة/ENGL113 - English Language 3.pdf'),
+        "ENGL204": asset_path('قسم الدراسات العامة/ENGL204 - English Language 4.pdf'),
+        "MATH101": asset_path('قسم الدراسات العامة/MATH101 - Mathematics.pdf'),
+        "MATH121": asset_path('قسم الدراسات العامة/MATH121 - Mathematics.pdf')
     }
 }
 
 # 🧾 الأدلة الإلكترونية للمتدرب
 trainee_guides_files = {
-    "دليل المتدرب": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/دليل المتدرب 1445 هـ.pdf",
-    "التصنيف وشروط القبول": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/التصنيف وشروط القبول.pdf",
-    "طي القيد والتأجيل والانسحاب وتغيير التخصص": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/طي_القيد_والتأجيل_والانسحاب_وتغير_التخصص.pdf",
-    "المكافآت": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/المكافأت.pdf",
-    "ضوابط النقل ومعالدلة المقررات": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/ضوابط النقل ومعادلة المقررات .pdf",
-    "حقوق وواجبات المتدرب": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/حقوق وواجبات المتدرب.pdf",
-    "نظام التدريب": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/نظام التدريب.pdf",
-    "المواظبة والتنظيمات": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/المواظبة والتنظيمات.pdf",
-    "التقييم وحساب المعدل الفصلي والتراكمي": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/التقييم_وحساب_المعدل_الفصلي_والتراكمي_والعبء_التدريبي.pdf",
-    "وحدة الخدمات الارشادية": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/وحدة الخدمات الإرشادية .pdf",
-    "الارشاد التدريبي والأنشطة": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/الإرشاد التدريبي والأنشطة .pdf",
-    "التدريب التعاوني والمشروع الانتاجي": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/التدريب_التعاوني_والمشروع_الإنتاجي_.pdf",
-    "مبادرة رافد و التنسيق الوظيفي": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/مبادرة رافد والتنسيق الوظيفي.pdf",
-    "الخدمات التدريبية المساندة": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/الخدمات التدريبية المساندة .pdf"
+    "دليل المتدرب": asset_path('الخدمات الالكترونية/دليل المتدرب 1445 هـ.pdf'),
+    "التصنيف وشروط القبول": asset_path('الخدمات الالكترونية/التصنيف وشروط القبول.pdf'),
+    "طي القيد والتأجيل والانسحاب وتغيير التخصص": asset_path('الخدمات الالكترونية/طي_القيد_والتأجيل_والانسحاب_وتغير_التخصص.pdf'),
+    "المكافآت": asset_path('الخدمات الالكترونية/المكافأت.pdf'),
+    "ضوابط النقل ومعالدلة المقررات": asset_path('الخدمات الالكترونية/ضوابط النقل ومعادلة المقررات .pdf'),
+    "حقوق وواجبات المتدرب": asset_path('الخدمات الالكترونية/حقوق وواجبات المتدرب.pdf'),
+    "نظام التدريب": asset_path('الخدمات الالكترونية/نظام التدريب.pdf'),
+    "المواظبة والتنظيمات": asset_path('الخدمات الالكترونية/المواظبة والتنظيمات.pdf'),
+    "التقييم وحساب المعدل الفصلي والتراكمي": asset_path('الخدمات الالكترونية/التقييم_وحساب_المعدل_الفصلي_والتراكمي_والعبء_التدريبي.pdf'),
+    "وحدة الخدمات الارشادية": asset_path('الخدمات الالكترونية/وحدة الخدمات الإرشادية .pdf'),
+    "الارشاد التدريبي والأنشطة": asset_path('الخدمات الالكترونية/الإرشاد التدريبي والأنشطة .pdf'),
+    "التدريب التعاوني والمشروع الانتاجي": asset_path('الخدمات الالكترونية/التدريب_التعاوني_والمشروع_الإنتاجي_.pdf'),
+    "مبادرة رافد و التنسيق الوظيفي": asset_path('الخدمات الالكترونية/مبادرة رافد والتنسيق الوظيفي.pdf'),
+    "الخدمات التدريبية المساندة": asset_path('الخدمات الالكترونية/الخدمات التدريبية المساندة .pdf')
 }
 
 # 🧾 خدمات المتدربين
 trainee_services_files = {
-    "تقديم طلب الكتروني": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/الادله الاجرائية/تقديم طلب إلكتروني .pdf",
-    "اضافة أو تحديث الايبان": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/الادله الاجرائية/إضافة أو تحديث آيبان متدرب.pdf",
-    "الاستعلام عن المكافأة المالية": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/الادله الاجرائية/الاستعلام عن المكافآت المالية.pdf",
-    "دليل تفعيل البريد الالكتروني": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/الادله الاجرائية/دليل تفعيل البريد الإلكتروني.pdf",
-    "عرض السجل التدريبي": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/الادله الاجرائية/عرض السجل التدريبي.pdf",
-    "عرض الجدول التدريبي": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/الادله الاجرائية/عرض الجدول التدريبي.pdf",
-    "تسجيل الجدول للمتدرب ـ مستمر": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/الادله الاجرائية/تسجيل الجدول للمتدرب المستمر.pdf",
-    "الاستعلام عن الدرجات": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/الادله الاجرائية/الإستعلام عن الدرجات.pdf",
-    "الاستعلام عن مواعيد الساعات المكتبية للمدرب": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/الادله الاجرائية/الاستعلام_عن_مواعيد_الساعات_المكتبية_لمدرب_شعبة_معينة_.pdf",
-    "التسجيل في البرامج المساندة": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/الادله الاجرائية/التسجيل في البرامج المساندة .pdf",
-    "عرض نسب اجتياز المواد": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/الادله الاجرائية/عرض نسب اجتياز المواد.pdf",
-    "بطاقة المتدرب الرقمية": "/Users/lozi/Desktop/TTC_109_bot/الخدمات الالكترونية/الادله الاجرائية/بطاقة المتدرب الرقمية.pdf"
+    "تقديم طلب الكتروني": asset_path('الخدمات الالكترونية/الادله الاجرائية/تقديم طلب إلكتروني .pdf'),
+    "اضافة أو تحديث الايبان": asset_path('الخدمات الالكترونية/الادله الاجرائية/إضافة أو تحديث آيبان متدرب.pdf'),
+    "الاستعلام عن المكافأة المالية": asset_path('الخدمات الالكترونية/الادله الاجرائية/الاستعلام عن المكافآت المالية.pdf'),
+    "دليل تفعيل البريد الالكتروني": asset_path('الخدمات الالكترونية/الادله الاجرائية/دليل تفعيل البريد الإلكتروني.pdf'),
+    "عرض السجل التدريبي": asset_path('الخدمات الالكترونية/الادله الاجرائية/عرض السجل التدريبي.pdf'),
+    "عرض الجدول التدريبي": asset_path('الخدمات الالكترونية/الادله الاجرائية/عرض الجدول التدريبي.pdf'),
+    "تسجيل الجدول للمتدرب ـ مستمر": asset_path('الخدمات الالكترونية/الادله الاجرائية/تسجيل الجدول للمتدرب المستمر.pdf'),
+    "الاستعلام عن الدرجات": asset_path('الخدمات الالكترونية/الادله الاجرائية/الإستعلام عن الدرجات.pdf'),
+    "الاستعلام عن مواعيد الساعات المكتبية للمدرب": asset_path('الخدمات الالكترونية/الادله الاجرائية/الاستعلام_عن_مواعيد_الساعات_المكتبية_لمدرب_شعبة_معينة_.pdf'),
+    "التسجيل في البرامج المساندة": asset_path('الخدمات الالكترونية/الادله الاجرائية/التسجيل في البرامج المساندة .pdf'),
+    "عرض نسب اجتياز المواد": asset_path('الخدمات الالكترونية/الادله الاجرائية/عرض نسب اجتياز المواد.pdf'),
+    "بطاقة المتدرب الرقمية": asset_path('الخدمات الالكترونية/الادله الاجرائية/بطاقة المتدرب الرقمية.pdf')
 }
 
 # ☎️ رقم واتساب خاص لكل قسم
@@ -1381,6 +1390,8 @@ async def handle_choice(update, context):
 
 # ====== تشغيل البوت ======
 if __name__ == '__main__':
+    if not TOKEN:
+        raise SystemExit('BOT_TOKEN is missing. Set it in Coolify runtime environment variables or local .env.')
     load_users()
 
     app = ApplicationBuilder().token(TOKEN).build()
@@ -1400,5 +1411,6 @@ if __name__ == '__main__':
     # ✅ حفظ المستخدمين لكل تفاعل (Debug)
     app.add_handler(MessageHandler(filters.ALL, save_user))
 
+    print("Starting Telegram bot with long polling...", flush=True)
     app.run_polling()
 
