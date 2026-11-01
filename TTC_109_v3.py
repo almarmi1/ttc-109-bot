@@ -10,8 +10,36 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
+from github_assets import GitHubAssets
+
+assets = GitHubAssets(
+    repository=os.getenv("GITHUB_REPOSITORY", "almarmi1/ttc-109-bot"),
+    ref=os.getenv("GITHUB_REF", "main"),
+    token=os.getenv("GITHUB_TOKEN", ""),
+)
+
 def asset_path(relative_path):
-    return str(BASE_DIR / relative_path)
+    # Keep exact repository paths, including leading spaces and Arabic Unicode.
+    return relative_path
+
+async def send_asset(update, path, photo=False):
+    try:
+        content = await asyncio.to_thread(assets.read, path)
+        if photo:
+            await update.message.reply_photo(content)
+        else:
+            await update.message.reply_document(content, filename=Path(path).name)
+    except Exception as error:
+        print("Asset delivery failed:", type(error).__name__)
+        await update.message.reply_text("⚠️ تعذر تحميل الملف من GitHub أو إرساله الآن. حاول مرة أخرى لاحقاً.")
+
+async def load_selected_data(update, loader, *args):
+    try:
+        return await asyncio.to_thread(loader, *args)
+    except Exception as error:
+        print("GitHub data load failed:", type(error).__name__)
+        await update.message.reply_text("⚠️ تعذر قراءة البيانات من GitHub الآن. حاول مرة أخرى لاحقاً.")
+        return None
 
 # ✅ تحويلات
 import pdfplumber
@@ -183,30 +211,30 @@ department_training_plans = {
     "الحاسب وتقنية المعلومات": {
         "الشبكات": asset_path('شبكات.pdf'),
         "البرمجيات": asset_path('برمجيات.pdf'),
-        "الوسائط": asset_path('وسائط.pdf')
+        "الوسائط": asset_path('وسائط.pdf')
     },
     "التقنية الميكانيكية": {
         "محركات ومركبات": asset_path('المحركات والمركبات.pdf')
     },
     "التقنية الالكترونية": {
-        "الإلكترونيات وأنظمة التحكم": asset_path(' الإلكترونيات وأنظمة التحكم.pdf')
+        "الإلكترونيات وأنظمة التحكم": asset_path(' الإلكترونيات وأنظمة التحكم.pdf')
     },
     "التقنية الكهربائية": {
-        "قوى كهربائية": asset_path(' القوى الكهربائية.pdf'),
+        "قوى كهربائية": asset_path(' القوى الكهربائية.pdf'),
         "طاقة متجددة": asset_path(' الطاقة المتجددة.pdf')
     },
     "التقنية المدنية والمعمارية": {
-        "مدني": asset_path('الإنشاءات المدنية.pdf'),
-        "الإنشاءات المعمارية": asset_path('الإنشاءات المعمارية.pdf'),
+        "مدني": asset_path('الإنشاءات المدنية.pdf'),
+        "الإنشاءات المعمارية": asset_path('الإنشاءات المعمارية.pdf'),
         "مساحة": asset_path('المساحة.pdf')
     },
     "التقنية الإدارية والمالية": {
-        "تقنية الاعمال": asset_path(' الأعمال المكتبية.pdf'),
+        "تقنية الاعمال": asset_path(' الأعمال المكتبية.pdf'),
         "محاسبة": asset_path('محاسبية.pdf')
     },
     "الدراسات العامة": {
         "مقدمة في الاحصاء": asset_path('قسم الدراسات العامة/مقدمة في الاحصاء.pdf'),
-        "الدراسات الاسلامية": asset_path('قسم الدراسات العامة/ الدراسات الإسلامية.pdf'),
+        "الدراسات الاسلامية": asset_path('قسم الدراسات العامة/ الدراسات الإسلامية.pdf'),
         "مقدمة تطبيقات الحاسب": asset_path('قسم الدراسات العامة/مقدمة تطبيقات الحاسب.pdf'),
         "تطبيقات الحاسب المتقدمة": asset_path('قسم الدراسات العامة/تطبيقات الحاسب المتقدمة.pdf'),
         "الرياضيات 101": asset_path('قسم الدراسات العامة/الرياضيات 101.pdf'),
@@ -228,34 +256,34 @@ department_training_plans = {
 trainee_guides_files = {
     "دليل المتدرب": asset_path('الخدمات الالكترونية/دليل المتدرب 1445 هـ.pdf'),
     "التصنيف وشروط القبول": asset_path('الخدمات الالكترونية/التصنيف وشروط القبول.pdf'),
-    "طي القيد والتأجيل والانسحاب وتغيير التخصص": asset_path('الخدمات الالكترونية/طي_القيد_والتأجيل_والانسحاب_وتغير_التخصص.pdf'),
-    "المكافآت": asset_path('الخدمات الالكترونية/المكافأت.pdf'),
+    "طي القيد والتأجيل والانسحاب وتغيير التخصص": asset_path('الخدمات الالكترونية/طي_القيد_والتأجيل_والانسحاب_وتغير_التخصص.pdf'),
+    "المكافآت": asset_path('الخدمات الالكترونية/المكافأت.pdf'),
     "ضوابط النقل ومعالدلة المقررات": asset_path('الخدمات الالكترونية/ضوابط النقل ومعادلة المقررات .pdf'),
     "حقوق وواجبات المتدرب": asset_path('الخدمات الالكترونية/حقوق وواجبات المتدرب.pdf'),
     "نظام التدريب": asset_path('الخدمات الالكترونية/نظام التدريب.pdf'),
     "المواظبة والتنظيمات": asset_path('الخدمات الالكترونية/المواظبة والتنظيمات.pdf'),
     "التقييم وحساب المعدل الفصلي والتراكمي": asset_path('الخدمات الالكترونية/التقييم_وحساب_المعدل_الفصلي_والتراكمي_والعبء_التدريبي.pdf'),
-    "وحدة الخدمات الارشادية": asset_path('الخدمات الالكترونية/وحدة الخدمات الإرشادية .pdf'),
-    "الارشاد التدريبي والأنشطة": asset_path('الخدمات الالكترونية/الإرشاد التدريبي والأنشطة .pdf'),
-    "التدريب التعاوني والمشروع الانتاجي": asset_path('الخدمات الالكترونية/التدريب_التعاوني_والمشروع_الإنتاجي_.pdf'),
+    "وحدة الخدمات الارشادية": asset_path('الخدمات الالكترونية/وحدة الخدمات الإرشادية .pdf'),
+    "الارشاد التدريبي والأنشطة": asset_path('الخدمات الالكترونية/الإرشاد التدريبي والأنشطة .pdf'),
+    "التدريب التعاوني والمشروع الانتاجي": asset_path('الخدمات الالكترونية/التدريب_التعاوني_والمشروع_الإنتاجي_.pdf'),
     "مبادرة رافد و التنسيق الوظيفي": asset_path('الخدمات الالكترونية/مبادرة رافد والتنسيق الوظيفي.pdf'),
     "الخدمات التدريبية المساندة": asset_path('الخدمات الالكترونية/الخدمات التدريبية المساندة .pdf')
 }
 
 # 🧾 خدمات المتدربين
 trainee_services_files = {
-    "تقديم طلب الكتروني": asset_path('الخدمات الالكترونية/الادله الاجرائية/تقديم طلب إلكتروني .pdf'),
-    "اضافة أو تحديث الايبان": asset_path('الخدمات الالكترونية/الادله الاجرائية/إضافة أو تحديث آيبان متدرب.pdf'),
-    "الاستعلام عن المكافأة المالية": asset_path('الخدمات الالكترونية/الادله الاجرائية/الاستعلام عن المكافآت المالية.pdf'),
-    "دليل تفعيل البريد الالكتروني": asset_path('الخدمات الالكترونية/الادله الاجرائية/دليل تفعيل البريد الإلكتروني.pdf'),
-    "عرض السجل التدريبي": asset_path('الخدمات الالكترونية/الادله الاجرائية/عرض السجل التدريبي.pdf'),
-    "عرض الجدول التدريبي": asset_path('الخدمات الالكترونية/الادله الاجرائية/عرض الجدول التدريبي.pdf'),
-    "تسجيل الجدول للمتدرب ـ مستمر": asset_path('الخدمات الالكترونية/الادله الاجرائية/تسجيل الجدول للمتدرب المستمر.pdf'),
-    "الاستعلام عن الدرجات": asset_path('الخدمات الالكترونية/الادله الاجرائية/الإستعلام عن الدرجات.pdf'),
-    "الاستعلام عن مواعيد الساعات المكتبية للمدرب": asset_path('الخدمات الالكترونية/الادله الاجرائية/الاستعلام_عن_مواعيد_الساعات_المكتبية_لمدرب_شعبة_معينة_.pdf'),
-    "التسجيل في البرامج المساندة": asset_path('الخدمات الالكترونية/الادله الاجرائية/التسجيل في البرامج المساندة .pdf'),
-    "عرض نسب اجتياز المواد": asset_path('الخدمات الالكترونية/الادله الاجرائية/عرض نسب اجتياز المواد.pdf'),
-    "بطاقة المتدرب الرقمية": asset_path('الخدمات الالكترونية/الادله الاجرائية/بطاقة المتدرب الرقمية.pdf')
+    "تقديم طلب الكتروني": asset_path('الخدمات الالكترونية/الادله الاجرائية/تقديم طلب إلكتروني .pdf'),
+    "اضافة أو تحديث الايبان": asset_path('الخدمات الالكترونية/الادله الاجرائية/إضافة أو تحديث آيبان متدرب.pdf'),
+    "الاستعلام عن المكافأة المالية": asset_path('الخدمات الالكترونية/الادله الاجرائية/الاستعلام عن المكافآت المالية.pdf'),
+    "دليل تفعيل البريد الالكتروني": asset_path('الخدمات الالكترونية/الادله الاجرائية/دليل تفعيل البريد الإلكتروني.pdf'),
+    "عرض السجل التدريبي": asset_path('الخدمات الالكترونية/الادله الاجرائية/عرض السجل التدريبي.pdf'),
+    "عرض الجدول التدريبي": asset_path('الخدمات الالكترونية/الادله الاجرائية/عرض الجدول التدريبي.pdf'),
+    "تسجيل الجدول للمتدرب ـ مستمر": asset_path('الخدمات الالكترونية/الادله الاجرائية/تسجيل الجدول للمتدرب المستمر.pdf'),
+    "الاستعلام عن الدرجات": asset_path('الخدمات الالكترونية/الادله الاجرائية/الإستعلام عن الدرجات.pdf'),
+    "الاستعلام عن مواعيد الساعات المكتبية للمدرب": asset_path('الخدمات الالكترونية/الادله الاجرائية/الاستعلام_عن_مواعيد_الساعات_المكتبية_لمدرب_شعبة_معينة_.pdf'),
+    "التسجيل في البرامج المساندة": asset_path('الخدمات الالكترونية/الادله الاجرائية/التسجيل في البرامج المساندة .pdf'),
+    "عرض نسب اجتياز المواد": asset_path('الخدمات الالكترونية/الادله الاجرائية/عرض نسب اجتياز المواد.pdf'),
+    "بطاقة المتدرب الرقمية": asset_path('الخدمات الالكترونية/الادله الاجرائية/بطاقة المتدرب الرقمية.pdf')
 }
 
 # ☎️ رقم واتساب خاص لكل قسم
@@ -275,7 +303,7 @@ training_departments = list(department_whatsapp.keys())
 # تحميل بيانات الأقسام
 # =========================
 def load_department_data(excel_path: str) -> dict:
-    xls = pd.ExcelFile(excel_path)
+    xls = pd.ExcelFile(assets.read(excel_path))
     data = {}
     for sheet in xls.sheet_names:
         if sheet in training_departments:
@@ -283,30 +311,26 @@ def load_department_data(excel_path: str) -> dict:
             data[sheet] = df
     return data
 
-department_dfs = load_department_data(EXCEL_PATH)
+
 
 # تحميل ورقة المرشدين
 def load_mentors_data(excel_path: str):
     try:
-        df = pd.read_excel(excel_path, sheet_name="المرشدون", dtype=str)
+        df = pd.read_excel(assets.read(excel_path), sheet_name="المرشدون", dtype=str)
         df = df.fillna('لا يوجد')
         return df
     except Exception as e:
         print("⚠️ خطأ أثناء قراءة ورقة المرشدين:", e)
-        return pd.DataFrame(columns=["رقم المتدرب", "اسم المرشد"])
+        raise
 
-mentors_df = load_mentors_data(EXCEL_PATH)
+
 
 # =========================
 # ✅ تحميل بنك الأسئلة
 # =========================
 def load_quiz_bank(excel_path: str, sheet_name: str = QUIZ_SHEET_NAME):
-    if not os.path.exists(excel_path):
-        print("⚠️ ملف بنك الأسئلة غير موجود:", excel_path)
-        return []
-
     try:
-        df = pd.read_excel(excel_path, sheet_name=sheet_name, dtype=str).fillna("")
+        df = pd.read_excel(assets.read(excel_path), sheet_name=sheet_name, dtype=str).fillna("")
         required = {"Type", "Question", "A", "B", "C", "D", "Correct"}
         if not required.issubset(set(df.columns)):
             print("⚠️ أعمدة بنك الأسئلة ناقصة. الأعمدة المطلوبة:", required)
@@ -359,7 +383,7 @@ def load_quiz_bank(excel_path: str, sheet_name: str = QUIZ_SHEET_NAME):
         print("⚠️ خطأ أثناء قراءة بنك الأسئلة:", e)
         return []
 
-QUIZ_BANK = load_quiz_bank(QUIZ_EXCEL_PATH)
+
 
 # =========================
 # ✅ أدوات الاختبار
@@ -426,7 +450,7 @@ async def quiz_show_current(update, context):
         pos = len(order) - 1
 
     context.user_data["quiz_pos"] = pos
-    qitem = QUIZ_BANK[order[pos]]
+    qitem = context.user_data["quiz_bank"][order[pos]]
     total = len(order)
 
     await update.message.reply_text(
@@ -543,7 +567,7 @@ AI_BUTTON = "استعلامات عامة"
 AI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
 FAQ_EXCEL_PATH = EXCEL_PATH
 # أضف هنا أسماء أوراق الاستعلامات فقط؛ لا تضف أوراق بيانات الموظفين أو المرشدين.
-FAQ_SHEET_NAMES = ["القبول والتسجيل", "التدريب التعاوني","إضافة الآيبان و طلب تعريف","الأنشطة"]
+FAQ_SHEET_NAMES = ["القبول والتسجيل", "التدريب التعاوني","إضافة الآيبان و طلب تعريف","الأنشطة","ارقم التواصل لشؤون المتدربين"]
 FAQ_PAGE_SIZE = 8
 FAQ_BACK = "↩️ الأقسام"
 FAQ_HOME = "🏠 الرئيسية"
@@ -555,7 +579,7 @@ AI_UNKNOWN = "لا توجد إجابة معتمدة لهذا السؤال في �
 def load_general_faq():
     """A للسؤال وB للإجابة؛ صف العناوين اختياري، والصفوف الناقصة تُتجاهل."""
     bank = {}
-    with pd.ExcelFile(FAQ_EXCEL_PATH) as workbook:
+    with pd.ExcelFile(assets.read(FAQ_EXCEL_PATH)) as workbook:
         for name in FAQ_SHEET_NAMES:
             if name not in workbook.sheet_names:
                 continue
@@ -768,8 +792,8 @@ def build_departments_keyboard():
     kb.append(['رجوع'])
     return kb
 
-def build_members_keyboard(dept_sheet_name: str):
-    df = department_dfs.get(dept_sheet_name)
+def build_members_keyboard(dept_sheet_name: str, context):
+    df = context.user_data.get("department_dfs", {}).get(dept_sheet_name)
     names = list(df['اسم الموظف'].astype(str).unique()) if df is not None else []
     kb = [[name] for name in names]
     kb.append(['رجوع'])
@@ -983,7 +1007,7 @@ async def handle_choice(update, context):
         pos = int(context.user_data.get("quiz_pos", 0))
 
         if order and 0 <= pos < len(order):
-            qitem = QUIZ_BANK[order[pos]]
+            qitem = context.user_data["quiz_bank"][order[pos]]
             correct_text = get_correct_text(qitem)
             user_answer = choice.strip()
 
@@ -1041,6 +1065,9 @@ async def handle_choice(update, context):
         return
 
     if choice == "اختبر معرفتك 🔴✨ جديد":
+        QUIZ_BANK = await load_selected_data(update, load_quiz_bank, QUIZ_EXCEL_PATH)
+        if QUIZ_BANK is None:
+            return
         if not QUIZ_BANK:
             await update.message.reply_text(
                 "⚠️ لا يوجد بنك أسئلة حالياً.\n"
@@ -1048,6 +1075,7 @@ async def handle_choice(update, context):
             )
             return
 
+        context.user_data["quiz_bank"] = QUIZ_BANK
         total_available = len(QUIZ_BANK)
         limit = min(QUIZ_QUESTION_LIMIT, total_available)
         order = random.sample(range(total_available), k=limit)
@@ -1185,6 +1213,9 @@ async def handle_choice(update, context):
         return
 
     if context.user_data.get('state') == 'mentor_lookup' and choice.isdigit():
+        mentors_df = await load_selected_data(update, load_mentors_data, EXCEL_PATH)
+        if mentors_df is None:
+            return
         trainee_number = choice
         row = mentors_df[mentors_df['رقم المتدرب'].astype(str) == trainee_number]
         if not row.empty:
@@ -1260,19 +1291,11 @@ async def handle_choice(update, context):
         return
 
     if choice == 'الخط الزمني':
-        try:
-            with open(image_example_path, 'rb') as img:
-                await update.message.reply_photo(img)
-        except Exception:
-            await update.message.reply_text("⚠️ لم يتم العثور على الصورة.")
+        await send_asset(update, image_example_path, photo=True)
         return
 
     if choice == 'تقويم الفصل التدريبي':
-        try:
-            with open(another_image_path, 'rb') as img:
-                await update.message.reply_photo(img)
-        except Exception:
-            await update.message.reply_text("⚠️ لم يتم العثور على الصورة.")
+        await send_asset(update, another_image_path, photo=True)
         return
 
     if choice == 'الادلة الالكترونية للمتدرب':
@@ -1286,11 +1309,7 @@ async def handle_choice(update, context):
     if context.user_data.get('state') == 'trainee_guides':
         if choice in trainee_guides_files:
             file_path = trainee_guides_files[choice]
-            try:
-                with open(file_path, 'rb') as pdf:
-                    await update.message.reply_document(pdf)
-            except Exception:
-                await update.message.reply_text("⚠️ لم يتم العثور على الملف.")
+            await send_asset(update, file_path)
         else:
             await update.message.reply_text("⚠️ الرجاء اختيار دليل من القائمة.")
         return
@@ -1306,11 +1325,7 @@ async def handle_choice(update, context):
     if context.user_data.get('state') == 'trainee_services':
         if choice in trainee_services_files:
             file_path = trainee_services_files[choice]
-            try:
-                with open(file_path, 'rb') as pdf:
-                    await update.message.reply_document(pdf)
-            except Exception:
-                await update.message.reply_text("⚠️ لم يتم العثور على الملف.")
+            await send_asset(update, file_path)
         else:
             await update.message.reply_text("⚠️ الرجاء اختيار خدمة من القائمة.")
         return
@@ -1331,13 +1346,17 @@ async def handle_choice(update, context):
         return
 
     if choice == 'اعضاء هيئة التدريب':
+        department_dfs = await load_selected_data(update, load_department_data, EXCEL_PATH)
+        if department_dfs is None:
+            return
+        context.user_data['department_dfs'] = department_dfs
         if dept_name not in department_dfs:
             await update.message.reply_text("⚠️ لا تتوفر بيانات لهذا القسم حالياً.")
             return
         context.user_data['action'] = 'members_list'
         await update.message.reply_text(
             "👨‍🏫 اختر اسم المدرب لعرض التفاصيل:",
-            reply_markup=ReplyKeyboardMarkup(build_members_keyboard(dept_name), resize_keyboard=True)
+            reply_markup=ReplyKeyboardMarkup(build_members_keyboard(dept_name, context), resize_keyboard=True)
         )
         return
 
@@ -1355,7 +1374,10 @@ async def handle_choice(update, context):
         return
 
     if context.user_data.get('action') == 'members_list':
-        df = department_dfs.get(dept_name)
+        df = context.user_data.get("department_dfs", {}).get(dept_name)
+        if df is None:
+            await update.message.reply_text("يرجى اختيار اعضاء هيئة التدريب مرة أخرى.")
+            return
         row = df[df['اسم الموظف'].astype(str) == choice]
         if not row.empty:
             r = row.iloc[0]
@@ -1367,7 +1389,7 @@ async def handle_choice(update, context):
                 f"🧾 التكليف: {r.get('التكليف','')}\n"
                 f"🪑 مكتب التكليف: {r.get('مكتب التكليف','')}"
             )
-            await update.message.reply_text(msg, reply_markup=ReplyKeyboardMarkup(build_members_keyboard(dept_name), resize_keyboard=True))
+            await update.message.reply_text(msg, reply_markup=ReplyKeyboardMarkup(build_members_keyboard(dept_name, context), resize_keyboard=True))
         else:
             await update.message.reply_text("⚠️ الرجاء اختيار اسم من القائمة.")
         return
@@ -1376,11 +1398,7 @@ async def handle_choice(update, context):
         plans = department_training_plans.get(dept_name, {})
         if choice in plans:
             file_path = plans[choice]
-            try:
-                with open(file_path, 'rb') as pdf:
-                    await update.message.reply_document(pdf)
-            except Exception:
-                await update.message.reply_text("⚠️ لم يتم العثور على الملف.")
+            await send_asset(update, file_path)
         else:
             await update.message.reply_text("⚠️ الرجاء اختيار خطة صحيحة من القائمة.")
         return
